@@ -8,25 +8,25 @@ datasource db {
 }
 
 model booked_seats {
-  id               Int               @id @default(autoincrement())
-  booking_id       Int?
-  seat_id          Int?
-  status_id        Int?
-  created_at       DateTime?         @db.Timestamp(6)
-  bookings         bookings?         @relation(fields: [booking_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  seats            seats?            @relation(fields: [seat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  c_booking_status c_booking_status? @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id            Int            @id @default(autoincrement())
+  booking_id    Int?
+  seat_id       Int?
+  status_id     Int?
+  created_at    DateTime?      @default(now()) @db.Timestamp(6)
+  bookings      bookings?      @relation(fields: [booking_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  seats         seats?         @relation(fields: [seat_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  c_seat_status c_seat_status? @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model bookings {
   id               Int               @id @default(autoincrement())
-  showtime_id      Int?
+  show_time_id     Int?
   email            String?           @db.VarChar(255)
   phone_number     String?           @db.VarChar(20)
   status_id        Int?
-  created_at       DateTime?         @db.Timestamp(6)
+  created_at       DateTime?         @default(now()) @db.Timestamp(6)
   booked_seats     booked_seats[]
-  showtimes        showtimes?        @relation(fields: [showtime_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  show_times       show_times?       @relation(fields: [show_time_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   c_booking_status c_booking_status? @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   transactions     transactions[]
 }
@@ -34,31 +34,38 @@ model bookings {
 model c_actors {
   id           Int            @id @default(autoincrement())
   name         String?        @db.VarChar(255)
-  created_at   DateTime?      @db.Timestamp(6)
+  profile_path String?        @db.VarChar(255)
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
   movie_actors movie_actors[]
 }
 
 model c_booking_status {
+  id         Int        @id @default(autoincrement())
+  name       String?    @db.VarChar(50)
+  created_at DateTime?  @default(now()) @db.Timestamp(6)
+  bookings   bookings[]
+}
+
+model c_seat_status {
   id           Int            @id @default(autoincrement())
   name         String?        @db.VarChar(50)
-  created_at   DateTime?      @db.Timestamp(6)
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
   booked_seats booked_seats[]
-  bookings     bookings[]
 }
 
 model c_theaters {
-  id          Int         @id @default(autoincrement())
-  name        String?     @db.VarChar(255)
+  id          Int          @id @default(autoincrement())
+  name        String?      @db.VarChar(255)
   total_seats Int?
-  created_at  DateTime?   @db.Timestamp(6)
+  created_at  DateTime?    @default(now()) @db.Timestamp(6)
   seats       seats[]
-  showtimes   showtimes[]
+  show_times  show_times[]
 }
 
 model c_transaction_status {
   id           Int            @id @default(autoincrement())
   name         String?        @db.VarChar(50)
-  created_at   DateTime?      @db.Timestamp(6)
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
   transactions transactions[]
 }
 
@@ -66,7 +73,7 @@ model movie_actors {
   id         Int       @id @default(autoincrement())
   movie_id   Int?
   actor_id   Int?
-  created_at DateTime? @db.Timestamp(6)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
   c_actors   c_actors? @relation(fields: [actor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   movies     movies?   @relation(fields: [movie_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -76,12 +83,13 @@ model movies {
   title           String?           @db.VarChar(255)
   description     String?
   duration        Int?
-  image_url       String?           @db.VarChar(255)
   release_date    DateTime?         @db.Date
   rate            Decimal?          @db.Decimal
-  created_at      DateTime?         @db.Timestamp(6)
+  backdrop_path   String?           @db.VarChar(255)
+  poster_path     String?           @db.VarChar(255)
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
   movie_actors    movie_actors[]
-  showtimes       showtimes[]
+  show_dates      show_dates[]
   trending_movies trending_movies[]
 }
 
@@ -90,21 +98,30 @@ model seats {
   theater_id   Int?
   row          String?        @db.VarChar(5)
   number       Int?
-  created_at   DateTime?      @db.Timestamp(6)
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
   booked_seats booked_seats[]
   c_theaters   c_theaters?    @relation(fields: [theater_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model showtimes {
-  id         Int         @id @default(autoincrement())
+model show_dates {
+  id         Int          @id @default(autoincrement())
   movie_id   Int?
-  theater_id Int?
-  start_time DateTime?   @db.Timestamp(6)
-  price      Decimal?    @db.Decimal
-  created_at DateTime?   @db.Timestamp(6)
-  bookings   bookings[]
-  movies     movies?     @relation(fields: [movie_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  c_theaters c_theaters? @relation(fields: [theater_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  date       DateTime?    @db.Date
+  created_at DateTime?    @default(now()) @db.Timestamp(6)
+  movies     movies?      @relation(fields: [movie_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  show_times show_times[]
+}
+
+model show_times {
+  id           Int         @id @default(autoincrement())
+  show_date_id Int?
+  theater_id   Int?
+  time         String?     @db.VarChar(50)
+  price        Decimal?    @db.Decimal
+  created_at   DateTime?   @default(now()) @db.Timestamp(6)
+  bookings     bookings[]
+  show_dates   show_dates? @relation(fields: [show_date_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  c_theaters   c_theaters? @relation(fields: [theater_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model transactions {
@@ -113,7 +130,7 @@ model transactions {
   status_id            Int?
   amount               Decimal?              @db.Decimal(10, 2)
   payment_method       String?               @db.VarChar(50)
-  created_at           DateTime?             @db.Timestamp(6)
+  created_at           DateTime?             @default(now()) @db.Timestamp(6)
   bookings             bookings?             @relation(fields: [booking_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   c_transaction_status c_transaction_status? @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
@@ -121,9 +138,9 @@ model transactions {
 model trending_movies {
   id         Int       @id @default(autoincrement())
   movie_id   Int?
-  searchterm String?   @db.VarChar(255)
+  searchTerm String?   @db.VarChar(255)
   count      Int?      @default(0)
   poster_url String?   @db.VarChar(255)
   created_at DateTime? @default(now()) @db.Timestamp(6)
-  movies     movies?   @relation(fields: [movie_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  movies     movies?   @relation(fields: [movie_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
