@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { movies } from '@prisma/client';
+import { movies, trending_movies } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateTrendingDto } from './schemas/create-trending.dto';
 
 @Injectable()
 export class MoviesService {
@@ -10,10 +11,10 @@ export class MoviesService {
     return this.prisma.movies.findMany();
   }
 
-  async getMovieByID(id: number): Promise<movies | null> {
+  async getMovieByID(movie_id: number): Promise<movies | null> {
     return await this.prisma.movies.findUnique({
       where: {
-        id,
+        id: movie_id,
       },
       include: {
         movie_actors: {
@@ -31,7 +32,7 @@ export class MoviesService {
   }
 
   async searchMovie(query: string): Promise<movies[]> {
-    return this.prisma.movies.findMany({
+    return await this.prisma.movies.findMany({
       where: {
         OR: [
           {
@@ -49,5 +50,39 @@ export class MoviesService {
         ],
       },
     });
+  }
+
+  async getTrendingMovies(): Promise<trending_movies[]> {
+    return await this.prisma.trending_movies.findMany({
+      orderBy: {
+        count: 'desc',
+      },
+    });
+  }
+
+  async createTrendingMovie(data: CreateTrendingDto): Promise<trending_movies> {
+    const movie = await this.prisma.trending_movies.findMany({
+      where: {
+        movie_id: data.movie_id,
+      },
+      orderBy: {
+        count: 'desc',
+      },
+    });
+
+    if (movie.length > 0) {
+      return await this.prisma.trending_movies.update({
+        where: {
+          id: movie[0].id,
+        },
+        data: {
+          count: (movie[0].count ?? 0) + 1,
+        },
+      });
+    } else {
+      return await this.prisma.trending_movies.create({
+        data,
+      });
+    }
   }
 }
