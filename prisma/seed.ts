@@ -42,7 +42,7 @@ async function fetchActors(movieId: number): Promise<Cast[]> {
 }
 
 async function main() {
-  console.log('🌱 Seeding movies and actors...');
+  console.log('🌱 Seeding starting...');
 
   try {
     await prisma.$transaction(async (tx) => {
@@ -98,7 +98,7 @@ async function main() {
             description: movie.overview,
             duration: randomDuration,
             release_date: new Date(movie.release_date),
-            rate: movie.vote_average,
+            rate: movie.vote_average.toFixed(2),
             backdrop_path: movie.backdrop_path,
             poster_path: movie.poster_path,
             created_at: new Date(),
@@ -192,7 +192,7 @@ async function main() {
         }
       }
     });
-    console.log('✅ Seats seeded!');
+    console.log('✅ Seed finished!');
   } catch (error) {
     console.error('❌ Error seeding database: ', error);
   }
