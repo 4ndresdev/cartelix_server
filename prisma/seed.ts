@@ -22,13 +22,17 @@ const fetch = axios.create({
 });
 
 async function fetchMovies(): Promise<Movie[]> {
-  const response = await fetch.get<ResultMovie>('/movie/popular');
+  const response = await fetch.get<ResultMovie>(
+    'movie/popular?language=en-US&page=13',
+  );
 
   if (response.status !== 200) {
     throw new Error(`Error fetching movies: ${response.statusText}`);
   }
 
-  return response.data.results;
+  return response.data.results.filter(
+    (movie) => movie.backdrop_path && movie.overview,
+  );
 }
 
 async function fetchActors(movieId: number): Promise<Cast[]> {
@@ -136,20 +140,12 @@ async function main() {
 
       const theaters = await tx.c_theaters.findMany();
 
-      const possibleTimes = [
-        '09:00',
-        '10:30',
-        '12:00',
-        '14:00',
-        '16:00',
-        '18:30',
-        '20:30',
-      ];
+      const possibleTimes = ['09:00', '14:00', '20:30'];
 
-      const totalDays = 7;
+      const totalDays = 6;
 
       for (const movie of await tx.movies.findMany()) {
-        for (let dayOffset = 0; dayOffset < totalDays; dayOffset++) {
+        for (let dayOffset = 3; dayOffset < totalDays; dayOffset++) {
           const startTime = addDays(new Date(), dayOffset);
           const formattedStartTime = format(startTime, 'yyyy-MM-dd');
 
@@ -185,6 +181,7 @@ async function main() {
                 theater_id: theater.id,
                 row,
                 number,
+                status_id: 1,
                 created_at: new Date(),
               },
             });
