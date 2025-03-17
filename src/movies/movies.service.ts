@@ -57,6 +57,7 @@ export class MoviesService {
       orderBy: {
         count: 'desc',
       },
+      take: 10,
     });
   }
 
