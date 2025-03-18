@@ -28,7 +28,7 @@ Clone backend
 ```bash
   git clone https://github.com/4ndresdev/cartelix_server.git
   cd cartelix_server
-  npm install cartelix_server
+  npm install
 ```
 
 .env setup
