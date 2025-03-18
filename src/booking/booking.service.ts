@@ -5,10 +5,15 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto } from './schemas/create-booking.dto';
+import { EmailService } from '../common/services/email.service';
+import { format } from 'date-fns';
 
 @Injectable()
 export class BookingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async createBooking(data: CreateBookingDto) {
     const { show_time_id, email, phone_number, seat_ids } = data;
@@ -34,20 +39,25 @@ export class BookingService {
         },
       });
 
-      const price = await tx.show_times.findUnique({
+      const showTime = await tx.show_times.findUnique({
         where: {
           id: show_time_id,
         },
-        select: {
-          price: true,
+        include: {
+          c_theaters: true,
+          show_dates: {
+            include: {
+              movies: true,
+            },
+          },
         },
       });
 
-      if (!price) {
+      if (!showTime) {
         throw new NotFoundException('Show time not found');
       }
 
-      const total = Number(price.price) * seat_ids.length;
+      const total = Number(showTime.price) * seat_ids.length;
 
       await tx.transactions.create({
         data: {
@@ -65,6 +75,33 @@ export class BookingService {
         data: {
           status_id: 3,
         },
+      });
+
+      const seats = await tx.seats.findMany({
+        where: {
+          id: { in: seat_ids },
+        },
+      });
+
+      const seatLabels = seats
+        .map((seat) => `${seat.row}${seat.number}`)
+        .join(', ');
+
+      const formattedDate = showTime?.show_dates?.date
+        ? format(new Date(showTime.show_dates.date), 'dd/MM/yyyy')
+        : 'Unknown Date';
+
+      const backdrop_path = showTime?.show_dates?.movies?.backdrop_path;
+
+      await this.emailService.sendTicketConfirmation({
+        backdrop_path: `https://image.tmdb.org/t/p/w500${backdrop_path}`,
+        movieTitle: showTime.show_dates?.movies?.title || 'Movie',
+        date: formattedDate.toString(),
+        time: showTime.time || 'Unknown Time',
+        seats: seatLabels,
+        theater: showTime.c_theaters?.name || 'Unknown Theater',
+        transactionId: booking.id.toString(),
+        email: email,
       });
 
       return booking;
