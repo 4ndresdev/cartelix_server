@@ -21,6 +21,10 @@
 
 [API Documentation](https://cartelixserver-production.up.railway.app/api)
 
+## 📕 Database
+
+[Database diagram](https://dbdiagram.io/d/cartelix_db-67d1d3c975d75cc844daae26)
+
 ## 🚀 Installation
 
 Clone backend
