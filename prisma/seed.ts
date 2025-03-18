@@ -49,145 +49,150 @@ async function main() {
   console.log('🌱 Seeding starting...');
 
   try {
-    await prisma.$transaction(async (tx) => {
-      await tx.c_seat_status.createMany({
-        data: [
-          { name: 'Available' },
-          { name: 'Reserved' },
-          { name: 'Occupied' },
-        ],
-        skipDuplicates: true,
-      });
-
-      await tx.c_booking_status.createMany({
-        data: [
-          { name: 'Pending' },
-          { name: 'Confirmed' },
-          { name: 'Cancelled' },
-        ],
-        skipDuplicates: true,
-      });
-
-      await tx.c_transaction_status.createMany({
-        data: [
-          {
-            name: 'Pending',
-            created_at: new Date(),
-          },
-          { name: 'Completed', created_at: new Date() },
-          { name: 'Failed', created_at: new Date() },
-        ],
-        skipDuplicates: true,
-      });
-
-      await tx.c_theaters.createMany({
-        data: [
-          { name: 'Room 1', total_seats: 50, created_at: new Date() },
-          { name: 'Room 2', total_seats: 50, created_at: new Date() },
-          { name: 'Room 3', total_seats: 50, created_at: new Date() },
-          { name: 'Room 4', total_seats: 50, created_at: new Date() },
-        ],
-        skipDuplicates: true,
-      });
-
-      const movies = await fetchMovies();
-
-      for (const movie of movies) {
-        const randomDuration =
-          Math.floor(Math.random() * (300 - 150 + 1)) + 150;
-
-        const insertedMovie = await tx.movies.create({
-          data: {
-            title: movie.title,
-            description: movie.overview,
-            duration: randomDuration,
-            release_date: new Date(movie.release_date),
-            rate: movie.vote_average.toFixed(2),
-            backdrop_path: movie.backdrop_path,
-            poster_path: movie.poster_path,
-            created_at: new Date(),
-          },
+    await prisma.$transaction(
+      async (tx) => {
+        await tx.c_seat_status.createMany({
+          data: [
+            { name: 'Available' },
+            { name: 'Reserved' },
+            { name: 'Occupied' },
+          ],
+          skipDuplicates: true,
         });
 
-        const actors = await fetchActors(movie.id);
+        await tx.c_booking_status.createMany({
+          data: [
+            { name: 'Pending' },
+            { name: 'Confirmed' },
+            { name: 'Cancelled' },
+          ],
+          skipDuplicates: true,
+        });
 
-        for (const actor of actors) {
-          let insertedActor = await tx.c_actors.findFirst({
-            where: {
-              name: actor.name,
+        await tx.c_transaction_status.createMany({
+          data: [
+            {
+              name: 'Pending',
+              created_at: new Date(),
             },
-          });
+            { name: 'Completed', created_at: new Date() },
+            { name: 'Failed', created_at: new Date() },
+          ],
+          skipDuplicates: true,
+        });
 
-          if (!insertedActor) {
-            insertedActor = await tx.c_actors.create({
-              data: {
-                name: actor.name,
-                profile_path: actor.profile_path,
-                created_at: new Date(),
-              },
-            });
-          }
+        await tx.c_theaters.createMany({
+          data: [
+            { name: 'Room 1', total_seats: 50, created_at: new Date() },
+            { name: 'Room 2', total_seats: 50, created_at: new Date() },
+            { name: 'Room 3', total_seats: 50, created_at: new Date() },
+            { name: 'Room 4', total_seats: 50, created_at: new Date() },
+          ],
+          skipDuplicates: true,
+        });
 
-          await tx.movie_actors.create({
+        const movies = await fetchMovies();
+
+        for (const movie of movies) {
+          const randomDuration =
+            Math.floor(Math.random() * (300 - 150 + 1)) + 150;
+
+          const insertedMovie = await tx.movies.create({
             data: {
-              movie_id: insertedMovie.id,
-              actor_id: insertedActor.id,
+              title: movie.title,
+              description: movie.overview,
+              duration: randomDuration,
+              release_date: new Date(movie.release_date),
+              rate: movie.vote_average.toFixed(2),
+              backdrop_path: movie.backdrop_path,
+              poster_path: movie.poster_path,
               created_at: new Date(),
             },
           });
-        }
-      }
 
-      const theaters = await tx.c_theaters.findMany();
+          const actors = await fetchActors(movie.id);
 
-      const possibleTimes = ['09:00', '14:00', '20:30'];
-
-      const totalDays = 6;
-
-      for (const movie of await tx.movies.findMany()) {
-        for (let dayOffset = 3; dayOffset < totalDays; dayOffset++) {
-          const startTime = addDays(new Date(), dayOffset);
-          const formattedStartTime = format(startTime, 'yyyy-MM-dd');
-
-          const show_date_created = await tx.show_dates.create({
-            data: {
-              movie_id: movie.id,
-              date: new Date(formattedStartTime),
-            },
-          });
-
-          const shuffledTheaters = theaters.sort(() => Math.random() - 0.5);
-
-          for (let i = 0; i < possibleTimes.length; i++) {
-            const theater = shuffledTheaters[i % theaters.length];
-            await tx.show_times.create({
-              data: {
-                show_date_id: show_date_created.id,
-                theater_id: theater.id,
-                time: possibleTimes[i],
-                price: 10,
+          for (const actor of actors) {
+            let insertedActor = await tx.c_actors.findFirst({
+              where: {
+                name: actor.name,
               },
             });
-          }
-        }
-      }
 
-      for (const theater of theaters) {
-        for (const row of ['A', 'B', 'C', 'D', 'E']) {
-          for (let number = 1; number <= 10; number++) {
-            await tx.seats.create({
+            if (!insertedActor) {
+              insertedActor = await tx.c_actors.create({
+                data: {
+                  name: actor.name,
+                  profile_path: actor.profile_path,
+                  created_at: new Date(),
+                },
+              });
+            }
+
+            await tx.movie_actors.create({
               data: {
-                theater_id: theater.id,
-                row,
-                number,
-                status_id: 1,
+                movie_id: insertedMovie.id,
+                actor_id: insertedActor.id,
                 created_at: new Date(),
               },
             });
           }
         }
-      }
-    });
+
+        const theaters = await tx.c_theaters.findMany();
+
+        const possibleTimes = ['09:00', '14:00', '20:30'];
+
+        const totalDays = 6;
+
+        for (const movie of await tx.movies.findMany()) {
+          for (let dayOffset = 3; dayOffset < totalDays; dayOffset++) {
+            const startTime = addDays(new Date(), dayOffset);
+            const formattedStartTime = format(startTime, 'yyyy-MM-dd');
+
+            const show_date_created = await tx.show_dates.create({
+              data: {
+                movie_id: movie.id,
+                date: new Date(formattedStartTime),
+              },
+            });
+
+            const shuffledTheaters = theaters.sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < possibleTimes.length; i++) {
+              const theater = shuffledTheaters[i % theaters.length];
+              await tx.show_times.create({
+                data: {
+                  show_date_id: show_date_created.id,
+                  theater_id: theater.id,
+                  time: possibleTimes[i],
+                  price: 10,
+                },
+              });
+            }
+          }
+        }
+
+        for (const theater of theaters) {
+          for (const row of ['A', 'B', 'C', 'D', 'E']) {
+            for (let number = 1; number <= 10; number++) {
+              await tx.seats.create({
+                data: {
+                  theater_id: theater.id,
+                  row,
+                  number,
+                  status_id: 1,
+                  created_at: new Date(),
+                },
+              });
+            }
+          }
+        }
+      },
+      {
+        timeout: 600000, // 10 minutes
+      },
+    );
     console.log('✅ Seed finished!');
   } catch (error) {
     console.error('❌ Error seeding database: ', error);
