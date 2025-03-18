@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cartelix</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4 !important;
+      }
+      .container {
+        max-width: 400px;
+        margin: 20px auto;
+        background-color: #fff;
+        overflow: hidden;
+        border-radius: 15px;
+        text-align: center;
+      }
+      .header {
+        position: relative;
+      }
+      .header img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      .header h3 {
+        background-color: #000;
+        color: #fff;
+        margin: 0;
+        padding: 10px 0;
+      }
+      .details {
+        padding: 20px;
+        text-align: left;
+      }
+      .barcode {
+        text-align: center;
+        padding: 20px;
+      }
+      .barcode img {
+        width: 80%;
+      }
+      .bold {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="{{backdrop_path}}" alt="Movie Image" />
+        <h3>{{movieTitle}}</h3>
+      </div>
+      <div class="details">
+        <p><span class="bold">Date:</span> {{date}}</p>
+        <p><span class="bold">Time:</span> {{time}}</p>
+        <p><span class="bold">Seats:</span> {{seats}}</p>
+        <p><span class="bold">Theater:</span> {{theater}}</p>
+        <p><span class="bold">Transaction:</span> {{transactionId}}</p>
+      </div>
+      <div class="barcode">
+        <img src="https://pngimg.com/d/barcode_PNG4.png" alt="Barcode" />
+      </div>
+    </div>
+  </body>
+</html>

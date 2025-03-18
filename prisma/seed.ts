@@ -1,13 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
-import 'dotenv/config';
 import { Movie, ResultMovie } from './types/movie.interface';
 import { Cast, Credits } from './types/credits.interface';
 import { addDays, format } from 'date-fns';
+import { env } from 'process';
 
 const prisma = new PrismaClient();
 
-const TMDB_API_KEY = process.env.TMDB_API_KEY;
+const TMDB_API_KEY = env.TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
 
 if (!TMDB_API_KEY) {
