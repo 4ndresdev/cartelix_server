@@ -1,19 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BookingService } from '../booking.service';
+import { MoviesService } from '../movies.service';
 import { PrismaModule } from '../../prisma/prisma.module';
-import { BookingController } from '../booking.controller';
+import { MoviesController } from '../movies.controller';
 
-describe('BookingService', () => {
-  let service: BookingService;
+describe('MoviesService', () => {
+  let service: MoviesService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [BookingController],
-      providers: [BookingService],
+      controllers: [MoviesController],
+      providers: [MoviesService],
       imports: [PrismaModule],
     }).compile();
 
-    service = module.get<BookingService>(BookingService);
+    service = module.get<MoviesService>(MoviesService);
   });
 
   it('should be defined', () => {

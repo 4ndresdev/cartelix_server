@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
 import 'dotenv/config';
-import { Movie, ResultMovie } from './interfaces/movie.interface';
-import { Cast, Credits } from './interfaces/credits.interface';
+import { Movie, ResultMovie } from './types/movie.interface';
+import { Cast, Credits } from './types/credits.interface';
 import { addDays, format } from 'date-fns';
 
 const prisma = new PrismaClient();
@@ -156,11 +156,10 @@ async function main() {
             },
           });
 
-          // Barajar salas para que no se repitan
           const shuffledTheaters = theaters.sort(() => Math.random() - 0.5);
 
           for (let i = 0; i < possibleTimes.length; i++) {
-            const theater = shuffledTheaters[i % theaters.length]; // Distribuye equitativamente
+            const theater = shuffledTheaters[i % theaters.length];
             await tx.show_times.create({
               data: {
                 show_date_id: show_date_created.id,
