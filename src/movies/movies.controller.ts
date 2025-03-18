@@ -6,10 +6,12 @@ import {
   Post,
   Query,
   Body,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateTrendingDto } from './schemas/create-trending.dto';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { IsInt } from 'class-validator';
 
 @ApiTags('Movies')
 @Controller('movies')
@@ -30,8 +32,9 @@ export class MoviesController {
   }
 
   @Get('/:movie_id/details')
-  async getMovieByID(@Param('movie_id') movie_id: string) {
-    const movie = await this.moviesService.getMovieByID(Number(movie_id));
+  @IsInt()
+  async getMovieByID(@Param('movie_id', ParseIntPipe) movie_id: number) {
+    const movie = await this.moviesService.getMovieByID(movie_id);
 
     if (!movie) {
       throw new NotFoundException(`Movie with ID ${movie_id} not found`);
